@@ -1,0 +1,27 @@
+{
+  "name": "rag-aichat-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "typecheck": "vue-tsc -b"
+  },
+  "dependencies": {
+    "axios": "1.7.7",
+    "pinia": "2.2.6",
+    "vue": "3.5.13",
+    "vue-router": "4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "5.2.1",
+    "typescript": "5.6.3",
+    "vite": "6.0.7",
+    "vue-tsc": "2.1.10"
+  },
+  "allowScripts": {
+    "esbuild@0.24.2": true,
+    "vue-demi@0.14.10": true
+  }
+}

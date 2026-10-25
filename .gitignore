@@ -1,0 +1,16 @@
+node_modules/
+dist/
+target/
+.npm-cache/
+.m2/
+*.log
+.DS_Store
+Thumbs.db
+
+.idea/
+*.iml
+.vscode/
+
+env.local
+.env
+.env.*

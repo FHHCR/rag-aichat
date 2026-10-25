@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: rag-ai-chat
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/rag_aichat}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:123456}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: ${FLYWAY_ENABLED:true}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-to-a-long-enough-secret-for-development-only-0123456789}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  upload:
+    dir: ${UPLOAD_DIR:./uploads}
+
+logging:
+  level:
+    org.springframework.security: INFO
