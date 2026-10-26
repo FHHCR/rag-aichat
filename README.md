@@ -1,6 +1,6 @@
 # Rag-AiChat
 
-更新时间：2026-10-24
+更新时间：2026-10-25
 
 Rag-AiChat 是一个基于 RAG 的 AI 问答系统，使用 SpringBoot 后端和 Vue 前端实现。项目分为用户聊天页面和管理后台两部分：普通用户只使用聊天页面，管理员负责上传文件、维护知识库和管理账号。
 
@@ -19,8 +19,8 @@ Rag-AiChat 是一个基于 RAG 的 AI 问答系统，使用 SpringBoot 后端和
 - [x] v0.2：初始化 Vue 前端项目、路由、布局、Axios 封装和基础页面骨架。
 - [x] v0.3：接入 PostgreSQL、Redis 和 pgvector，完成基础表结构。
 - [x] v0.4：完成用户实体、登录接口、JWT 签发和登录页面。
-- [ ] v0.5：完成 USER、ADMIN 角色鉴权和管理后台访问控制。
-- [ ] v0.6：完成知识库实体、管理员知识库 CRUD 和前端知识库页面。
+- [x] v0.5：完成 USER、ADMIN 角色鉴权和管理后台访问控制。
+- [x] v0.6：完成知识库实体、管理员知识库 CRUD 和前端知识库页面。
 - [ ] v0.7：完成文件上传、文件元数据、Apache Tika 解析和解析状态展示。
 - [ ] v0.8：完成文本切分、embedding 调用和 PostgreSQL + pgvector 向量入库。
 - [ ] v0.9：基于 AgentScope Java 2.0 完成向量检索、LLM 回答、引用来源保存和用户聊天页面。
@@ -123,3 +123,5 @@ npm run dev
 - 多天计划：`docs/plans/2026-10-24-rag-ai-chat-days-plan.md`
 - Day 1 规格说明：`docs/specs/2026-10-24-rag-ai-chat-spec.md`
 - Day 1 实现计划：`docs/plans/2026-10-24-rag-ai-chat-implementation-plan.md`
+- Day 2 规格说明：`docs/specs/2026-10-25-rag-ai-chat-v0.5-v0.6-spec.md`
+- Day 2 实现计划：`docs/plans/2026-10-25-today-plan.md`

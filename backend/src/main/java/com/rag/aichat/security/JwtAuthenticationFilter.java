@@ -1,8 +1,10 @@
 package com.rag.aichat.security;
 
 import com.rag.aichat.common.BusinessException;
+import com.rag.aichat.common.ApiResponse;
 import com.rag.aichat.entity.User;
 import com.rag.aichat.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -13,23 +15,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final AntPathRequestMatcher ADMIN_PATH = new AntPathRequestMatcher("/api/admin/**");
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserRepository userRepository, ObjectMapper objectMapper) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -37,6 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
+            if (ADMIN_PATH.matches(request)) {
+                writeJson(response, HttpServletResponse.SC_FORBIDDEN, 403, "access denied");
+                return;
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -46,6 +58,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             User user = userRepository.findById(claims.getSubject())
                     .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED.value(), 401, "user not found"));
             LoginUser loginUser = new LoginUser(user);
+            if (ADMIN_PATH.matches(request) && !isAdmin(loginUser)) {
+                writeJson(response, HttpServletResponse.SC_FORBIDDEN, 403, "access denied");
+                return;
+            }
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(loginUser, null, loginUser.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -55,5 +71,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isAdmin(LoginUser loginUser) {
+        Collection<? extends GrantedAuthority> authorities = loginUser.getAuthorities();
+        return authorities != null && authorities.stream().anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+    }
+
+    private void writeJson(HttpServletResponse response, int status, int code, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), new ApiResponse<Void>(code, message, null));
     }
 }
