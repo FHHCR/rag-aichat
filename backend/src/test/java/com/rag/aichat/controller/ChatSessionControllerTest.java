@@ -62,6 +62,14 @@ class ChatSessionControllerTest {
         String tokenA = login(userA);
         String tokenB = login(userB);
 
+        mockMvc.perform(post("/api/chat/sessions")
+                        .header("Authorization", "Bearer " + tokenA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code", is(0)))
+                .andExpect(jsonPath("$.data.title", is("新会话")));
+
         String created = mockMvc.perform(post("/api/chat/sessions")
                         .header("Authorization", "Bearer " + tokenA)
                         .contentType(MediaType.APPLICATION_JSON)

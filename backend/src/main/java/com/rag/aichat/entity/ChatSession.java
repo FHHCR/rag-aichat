@@ -7,7 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +27,7 @@ public class ChatSession {
     @Column(nullable = false)
     private String title;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "knowledge_base_scope", columnDefinition = "jsonb")
     private String knowledgeBaseScope;
 
