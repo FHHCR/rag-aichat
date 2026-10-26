@@ -1,6 +1,7 @@
 package com.rag.aichat.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class AuthLoginRequest {
 
@@ -8,6 +9,7 @@ public class AuthLoginRequest {
     private String username;
 
     @NotBlank
+    @Size(max = 100)
     private String password;
 
     public String getUsername() {

@@ -1,6 +1,6 @@
 # Rag-AiChat v0.7-v0.9 Implementation Plan
 
-**Goal:** Complete Day 3 of Rag-AiChat: chat session persistence, chat API, and usable chat UI with message history.
+**Goal:** Complete Day 3 of Rag-AiChat: chat session persistence, chat API, usable chat UI with message history, and public user registration.
 
 **Architecture:** SpringBoot exposes authenticated chat APIs under `/api/chat/**`. Frontend Vue 3 pages persist the selected session and display messages. This plan keeps LLM and RAG response generation out of scope and stores a local placeholder assistant response for the chat flow.
 
@@ -8,9 +8,12 @@
 
 **Spec:** `docs/specs/2026-10-26-rag-ai-chat-v0.7-v0.9-spec.md`
 
+**Follow-up scope:** User asked that public user registration be added after Day 3 work. This adds a public registration endpoint and frontend registration flow while keeping admin/user management out of scope.
+
 ## Global Constraints
 
 - Today only covers `v0.7-v0.9`.
+- User registration creates only `USER` accounts and returns a JWT immediately after success.
 - Do not implement file upload, Apache Tika parsing, chunking, embedding, pgvector retrieval, real LLM chat, AgentScope Java 2.0 orchestration, indexing, user management, admin management, or system status today.
 - `/api/health` and `/api/auth/login` remain public.
 - `/api/auth/me` requires JWT.
@@ -32,6 +35,7 @@
 - `backend/src/main/java/com/rag/aichat/service/ChatSessionService.java`
 - `backend/src/main/java/com/rag/aichat/controller/ChatSessionController.java`
 - `backend/src/main/java/com/rag/aichat/controller/ChatMessageController.java`
+- `backend/src/main/java/com/rag/aichat/controller/AuthRegisterRequest.java` is implemented under `dto/`, not a controller.
 - `backend/src/test/java/com/rag/aichat/controller/ChatSessionControllerTest.java`
 - `backend/src/test/java/com/rag/aichat/controller/ChatMessageControllerTest.java`
 
@@ -39,6 +43,11 @@
 
 - `backend/src/main/java/com/rag/aichat/repository/ChatSessionRepository.java`
 - `backend/src/main/java/com/rag/aichat/repository/ChatMessageRepository.java`
+- `backend/src/main/java/com/rag/aichat/dto/AuthRegisterRequest.java`
+- `backend/src/main/java/com/rag/aichat/controller/AuthController.java`
+- `backend/src/main/java/com/rag/aichat/service/AuthService.java`
+- `backend/src/main/java/com/rag/aichat/config/SecurityConfig.java`
+- `backend/src/test/java/com/rag/aichat/controller/AuthControllerTest.java`
 - `backend/src/main/java/com/rag/aichat/common/GlobalExceptionHandler.java` if validation or ownership errors need dedicated messages.
 
 ### Frontend files to create
@@ -48,6 +57,8 @@
 ### Frontend files to modify
 
 - `frontend/src/views/chat/ChatView.vue`
+- `frontend/src/api/auth.ts`
+- `frontend/src/views/login/LoginView.vue`
 - `frontend/src/types/api.ts` if response type helpers are needed.
 
 ## Task 1: Backend chat DTOs and repository support

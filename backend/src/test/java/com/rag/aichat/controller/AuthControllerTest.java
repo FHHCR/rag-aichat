@@ -36,6 +36,7 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
         User user = new User();
         user.setId(UUID.randomUUID().toString());
         user.setUsername("admin");
@@ -72,6 +73,54 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.username").value("admin"))
                 .andExpect(jsonPath("$.data.role").value("ADMIN"));
+    }
+
+    @Test
+    void registerCreatesUserAndReturnsToken() throws Exception {
+        String registerBody = """
+                {
+                  "username": "demo_user_001",
+                  "password": "password123",
+                  "confirmPassword": "password123",
+                  "displayName": "Demo User"
+                }
+                """;
+
+        String response = mockMvc.perform(post("/api/auth/register")
+                        .contentType("application/json")
+                        .content(registerBody))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.token").isNotEmpty())
+                .andExpect(jsonPath("$.data.user.username").value("demo_user_001"))
+                .andExpect(jsonPath("$.data.user.displayName").value("Demo User"))
+                .andExpect(jsonPath("$.data.user.role").value("USER"))
+                .andReturn().getResponse().getContentAsString();
+
+        String jwt = extractToken(response);
+        mockMvc.perform(get("/api/auth/me")
+                        .header("Authorization", "Bearer " + jwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.username").value("demo_user_001"));
+    }
+
+    @Test
+    void registerRejectsDuplicateUsername() throws Exception {
+        String registerBody = """
+                {
+                  "username": "admin",
+                  "password": "password123",
+                  "confirmPassword": "password123",
+                  "displayName": "Duplicate"
+                }
+                """;
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType("application/json")
+                        .content(registerBody))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value(409))
+                .andExpect(jsonPath("$.message").value("username already exists"));
     }
 
     private String extractToken(String responseBody) {

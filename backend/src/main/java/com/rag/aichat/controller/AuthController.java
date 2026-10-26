@@ -3,11 +3,14 @@ package com.rag.aichat.controller;
 import com.rag.aichat.common.ApiResponse;
 import com.rag.aichat.dto.AuthLoginRequest;
 import com.rag.aichat.dto.AuthLoginResponse;
+import com.rag.aichat.dto.AuthRegisterRequest;
 import com.rag.aichat.dto.UserInfoResponse;
 import com.rag.aichat.entity.User;
 import com.rag.aichat.security.LoginUser;
 import com.rag.aichat.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +31,11 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<AuthLoginResponse> login(@Valid @RequestBody AuthLoginRequest request) {
         return ApiResponse.ok(authService.login(request));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AuthLoginResponse>> register(@Valid @RequestBody AuthRegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(authService.register(request)));
     }
 
     @GetMapping("/me")
