@@ -33,7 +33,7 @@
           :disabled="loading"
           @click="selectMode('register')"
         >
-          注册
+          注册普通用户
         </button>
       </div>
 
@@ -119,7 +119,7 @@ function selectMode(nextMode: LoginMode) {
     displayName.value = '';
     confirmPassword.value = '';
     title.value = '注册普通用户';
-    hint.value = '注册后使用聊天页面。';
+    hint.value = '仅可注册普通用户账号。';
     submitLabel.value = '注册';
     loadingText.value = '注册中...';
   }
