@@ -169,8 +169,8 @@ cd frontend
 npm run build
 ```
 
-- [ ] Commit Day 3 implementation.
-- [ ] Push to GitHub.
+- [x] Commit Day 3 implementation.
+- [x] Push to GitHub.
 
 ## Verification Results
 
