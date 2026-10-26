@@ -1,6 +1,6 @@
 # Rag-AiChat
 
-更新时间：2026-10-25
+更新时间：2026-10-26
 
 Rag-AiChat 是一个基于 RAG 的 AI 问答系统，使用 SpringBoot 后端和 Vue 前端实现。项目分为用户聊天页面和管理后台两部分：普通用户只使用聊天页面，管理员负责上传文件、维护知识库和管理账号。
 
@@ -8,10 +8,8 @@ Rag-AiChat 是一个基于 RAG 的 AI 问答系统，使用 SpringBoot 后端和
 
 - Day 1：`v0.1-v0.4`，已完成后端脚手架、前端脚手架、数据库基础设施和登录 JWT。
 - Day 2：`v0.5-v0.6`，完成角色鉴权和管理员知识库管理。
-- Day 3：`v0.7`，完成文件上传、Apache Tika 解析和解析状态管理。
-- Day 4：`v0.8`，完成文本切分、embedding 调用和 pgvector 入库。
-- Day 5：`v0.9`，基于 AgentScope Java 2.0 完成向量检索、LLM 回答、引用来源和用户聊天页。
-- Day 6：`v1.0`，完成重新索引、用户管理、管理员管理、系统状态、测试和启动说明。
+- Day 3：`v0.7-v0.9`，完成聊天会话持久化、聊天 API 和聊天 UI。
+- Day 4：`v1.0`，计划完成文件上传、Apache Tika 解析和解析状态管理。
 
 ## 版本记录
 
@@ -21,10 +19,10 @@ Rag-AiChat 是一个基于 RAG 的 AI 问答系统，使用 SpringBoot 后端和
 - [x] v0.4：完成用户实体、登录接口、JWT 签发和登录页面。
 - [x] v0.5：完成 USER、ADMIN 角色鉴权和管理后台访问控制。
 - [x] v0.6：完成知识库实体、管理员知识库 CRUD 和前端知识库页面。
-- [ ] v0.7：完成文件上传、文件元数据、Apache Tika 解析和解析状态展示。
-- [ ] v0.8：完成文本切分、embedding 调用和 PostgreSQL + pgvector 向量入库。
-- [ ] v0.9：基于 AgentScope Java 2.0 完成向量检索、LLM 回答、引用来源保存和用户聊天页面。
-- [ ] v1.0：完成文件重新索引、用户管理、管理员管理、系统状态、测试和启动说明。
+- [x] v0.7：完成 USER/ADMIN 聊天访问控制，保留 `/api/admin/**` 管理员限制，并修正无 token 访问受保护聊天接口为 401。
+- [x] v0.8：完成聊天会话和聊天消息 API，支持当前用户会话创建、查询、删除，以及会话消息查询和创建。
+- [x] v0.9：完成 Vue 聊天页面，支持会话列表、新建、删除、消息历史、发送消息和占位 assistant 回复。
+- [ ] v1.0：完成文件上传、Apache Tika 解析、文本切分、embedding、pgvector 入库、AgentScope Java 2.0 RAG 回答、引用来源保存、重新索引、用户管理、管理员管理、系统状态、测试和启动说明。
 
 ## 开发环境要求
 
@@ -125,3 +123,5 @@ npm run dev
 - Day 1 实现计划：`docs/plans/2026-10-24-rag-ai-chat-implementation-plan.md`
 - Day 2 规格说明：`docs/specs/2026-10-25-rag-ai-chat-v0.5-v0.6-spec.md`
 - Day 2 实现计划：`docs/plans/2026-10-25-today-plan.md`
+- Day 3 规格说明：`docs/specs/2026-10-26-rag-ai-chat-v0.7-v0.9-spec.md`
+- Day 3 实现计划：`docs/plans/2026-10-26-today-plan.md`

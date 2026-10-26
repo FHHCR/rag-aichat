@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,6 +30,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private static final AntPathRequestMatcher ADMIN_PATH = new AntPathRequestMatcher("/api/admin/**");
+    private static final OrRequestMatcher PROTECTED_PATH = new OrRequestMatcher(
+            new AntPathRequestMatcher("/api/auth/me"),
+            new AntPathRequestMatcher("/api/chat/**")
+    );
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
@@ -45,6 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
+            if (PROTECTED_PATH.matches(request)) {
+                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, 401, "unauthenticated");
+                return;
+            }
             if (ADMIN_PATH.matches(request)) {
                 writeJson(response, HttpServletResponse.SC_FORBIDDEN, 403, "access denied");
                 return;
