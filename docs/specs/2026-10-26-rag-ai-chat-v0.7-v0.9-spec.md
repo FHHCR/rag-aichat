@@ -136,6 +136,9 @@
 - 后端去除首尾空白。
 - 为空时后端生成默认标题 `新会话`。
 - 只能创建当前 JWT 对应用户的会话。
+- `knowledge_base_scope` 可空，但必须是 PostgreSQL `jsonb` 类型安全写入。
+
+实现要求：JPA 实体中的 `chat_sessions.knowledge_base_scope` 和 `chat_messages.source_json` 字段必须显式绑定 PostgreSQL JSON 类型，避免将 JSON 文本作为 `character varying` 插入 `jsonb` 列。
 
 ### 4.3 查询会话详情
 

@@ -183,10 +183,30 @@ npm run build
 - [x] Commit Day 3 implementation.
 - [x] Push to GitHub.
 
+## Task 6: PostgreSQL JSONB regression fix
+
+**Files:**
+
+- Modify: `ChatSession.java`
+- Modify: `ChatMessage.java`
+- Modify: `ChatSessionControllerTest.java`
+
+**Produces:**
+
+- JPA binds PostgreSQL `jsonb` columns as JSON instead of `character varying`.
+- Empty `{}` chat session creation works and defaults to `新会话`.
+
+- [x] Add `@JdbcTypeCode(SqlTypes.JSON)` to chat session and chat message JSONB fields.
+- [x] Add regression coverage for `POST /api/chat/sessions` with `{}`.
+- [x] Run `cd backend && mvn clean test`.
+- [x] Verify against PostgreSQL by creating a session and creating a message.
+- [x] Commit and push the JSONB fix.
+
 ## Verification Results
 
-- Backend: `cd backend && mvn clean test` passed with 9 tests.
+- Backend: `cd backend && mvn clean test` passed with 11 tests.
 - Frontend: `cd frontend && npm run build` passed.
+- PostgreSQL smoke test: logged in with `admin/admin123`, created a chat session with `{}`, and created a message without JSONB binding errors.
 
 ## Acceptance Criteria
 
