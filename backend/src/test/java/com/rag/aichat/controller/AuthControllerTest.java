@@ -3,8 +3,9 @@ package com.rag.aichat.controller;
 import com.rag.aichat.entity.User;
 import com.rag.aichat.entity.UserRole;
 import com.rag.aichat.entity.UserStatus;
-import com.rag.aichat.repository.UserRepository;
+import com.rag.aichat.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,20 +24,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Tag("infrastructure")
 class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private UserRepository userRepository;
+    private UserMapper userMapper;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll();
+        userMapper.deleteAll();
         User user = new User();
         user.setId(UUID.randomUUID().toString());
         user.setUsername("admin");
@@ -44,7 +46,7 @@ class AuthControllerTest {
         user.setDisplayName("Administrator");
         user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
-        userRepository.save(user);
+        userMapper.insert(user);
     }
 
     @Test

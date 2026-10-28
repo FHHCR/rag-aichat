@@ -3,7 +3,7 @@ package com.rag.aichat.security;
 import com.rag.aichat.common.BusinessException;
 import com.rag.aichat.common.ApiResponse;
 import com.rag.aichat.entity.User;
-import com.rag.aichat.repository.UserRepository;
+import com.rag.aichat.mapper.UserMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -36,12 +36,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     );
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserRepository userRepository, ObjectMapper objectMapper) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserMapper userMapper, ObjectMapper objectMapper) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userRepository = userRepository;
+        this.userMapper = userMapper;
         this.objectMapper = objectMapper;
     }
 
@@ -64,8 +64,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Claims claims = jwtTokenProvider.parseToken(authorization.substring(7));
-            User user = userRepository.findById(claims.getSubject())
-                    .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED.value(), 401, "user not found"));
+            User user = userMapper.findById(claims.getSubject());
+            if (user == null) {
+                throw new BusinessException(HttpStatus.UNAUTHORIZED.value(), 401, "user not found");
+            }
             LoginUser loginUser = new LoginUser(user);
             if (ADMIN_PATH.matches(request) && !isAdmin(loginUser)) {
                 writeJson(response, HttpServletResponse.SC_FORBIDDEN, 403, "access denied");

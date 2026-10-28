@@ -5,20 +5,24 @@ import com.rag.aichat.dto.CreateKnowledgeBaseRequest;
 import com.rag.aichat.dto.KnowledgeBaseResponse;
 import com.rag.aichat.dto.UpdateKnowledgeBaseRequest;
 import com.rag.aichat.entity.KnowledgeBase;
-import com.rag.aichat.repository.KnowledgeBaseRepository;
+import com.rag.aichat.mapper.KnowledgeBaseMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class KnowledgeBaseService {
 
-    private final KnowledgeBaseRepository knowledgeBaseRepository;
+    private final KnowledgeBaseMapper knowledgeBaseMapper;
+    private final DocumentFileService documentFileService;
 
-    public KnowledgeBaseService(KnowledgeBaseRepository knowledgeBaseRepository) {
-        this.knowledgeBaseRepository = knowledgeBaseRepository;
+    public KnowledgeBaseService(KnowledgeBaseMapper knowledgeBaseMapper, DocumentFileService documentFileService) {
+        this.knowledgeBaseMapper = knowledgeBaseMapper;
+        this.documentFileService = documentFileService;
     }
 
     @Transactional
@@ -28,12 +32,17 @@ public class KnowledgeBaseService {
         knowledgeBase.setDescription(normalize(request.getDescription()));
         knowledgeBase.setStatus("ACTIVE");
         knowledgeBase.setCreatedById(createdById);
-        return toResponse(knowledgeBaseRepository.save(knowledgeBase));
+        knowledgeBase.setId(UUID.randomUUID().toString());
+        LocalDateTime now = LocalDateTime.now();
+        knowledgeBase.setCreatedAt(now);
+        knowledgeBase.setUpdatedAt(now);
+        knowledgeBaseMapper.insert(knowledgeBase);
+        return toResponse(knowledgeBase);
     }
 
     @Transactional(readOnly = true)
     public List<KnowledgeBaseResponse> list() {
-        return knowledgeBaseRepository.findAllByOrderByCreatedAtDesc().stream()
+        return knowledgeBaseMapper.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -48,19 +57,26 @@ public class KnowledgeBaseService {
         KnowledgeBase knowledgeBase = getEntity(id);
         knowledgeBase.setName(request.getName().trim());
         knowledgeBase.setDescription(normalize(request.getDescription()));
-        return toResponse(knowledgeBaseRepository.save(knowledgeBase));
+        knowledgeBase.setUpdatedAt(LocalDateTime.now());
+        knowledgeBaseMapper.update(knowledgeBase);
+        return toResponse(knowledgeBase);
     }
 
     @Transactional
     public void delete(String id) {
-        if (!knowledgeBaseRepository.existsById(id)) {
+        if (knowledgeBaseMapper.countById(id) == 0) {
             throw notFound();
         }
-        knowledgeBaseRepository.deleteById(id);
+        documentFileService.deleteByKnowledgeBase(id);
+        knowledgeBaseMapper.deleteById(id);
     }
 
     private KnowledgeBase getEntity(String id) {
-        return knowledgeBaseRepository.findById(id).orElseThrow(this::notFound);
+        KnowledgeBase knowledgeBase = knowledgeBaseMapper.findById(id);
+        if (knowledgeBase == null) {
+            throw notFound();
+        }
+        return knowledgeBase;
     }
 
     private BusinessException notFound() {

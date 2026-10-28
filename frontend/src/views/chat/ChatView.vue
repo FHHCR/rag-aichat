@@ -33,7 +33,7 @@
         <template v-else>
           <div class="chat-header">
             <h2>{{ currentSession.title }}</h2>
-            <p class="muted">当前为持久化消息流程，AI 回答将在后续版本接入。</p>
+            <p class="muted">可选择知识库范围提问；不选择时使用普通问答。</p>
           </div>
 
           <div ref="messagesRef" class="messages">
@@ -47,6 +47,7 @@
             >
               <span class="role">{{ message.role === 'user' ? '你' : '助手' }}</span>
               <p>{{ message.content }}</p>
+
             </article>
           </div>
 
@@ -54,7 +55,7 @@
             <textarea
               v-model="draft"
               rows="3"
-              placeholder="输入聊天内容"
+              placeholder="输入问题"
               :disabled="busy"
             ></textarea>
             <button class="primary" type="submit" :disabled="busy || !canSend">发送</button>
@@ -69,7 +70,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import BaseLayout from '../../layouts/BaseLayout.vue';
 import {
-  createChatMessage,
+  askChatStream,
   createChatSession,
   deleteChatSession,
   fetchChatMessages,
@@ -87,24 +88,28 @@ const messagesRef = ref<HTMLElement | null>(null);
 
 const canSend = computed(() => draft.value.trim().length > 0 && Boolean(currentSession.value));
 
-onMounted(loadSessions);
+onMounted(loadInitialData);
 
-async function loadSessions() {
+async function loadInitialData() {
   busy.value = true;
   error.value = '';
   try {
-    sessions.value = await fetchChatSessions();
-    if (!currentSession.value && sessions.value.length > 0) {
-      await selectSession(sessions.value[0].id);
-      return;
-    }
-    await loadMessages();
+    await loadSessions();
   } catch (nextError) {
-    error.value = '加载会话失败';
+    error.value = '初始化失败';
     console.error(nextError);
   } finally {
     busy.value = false;
   }
+}
+
+async function loadSessions() {
+  sessions.value = await fetchChatSessions();
+  if (!currentSession.value && sessions.value.length > 0) {
+    await selectSession(sessions.value[0].id);
+    return;
+  }
+  await loadMessages();
 }
 
 async function createSession() {
@@ -148,11 +153,7 @@ async function removeSession(sessionId: string) {
     sessions.value = sessions.value.filter((session) => session.id !== sessionId);
     if (currentSession.value?.id === sessionId) {
       currentSession.value = sessions.value[0] ?? null;
-      if (currentSession.value) {
-        await loadMessages();
-      } else {
-        messages.value = [];
-      }
+      await loadMessages();
     }
   } catch (nextError) {
     error.value = '删除会话失败';
@@ -174,30 +175,62 @@ async function loadMessages() {
 
 async function sendMessage() {
   const content = draft.value.trim();
-  if (!currentSession.value || !content || busy.value) return;
+  if (!currentSession.value || !content || !canSend.value) return;
 
   busy.value = true;
   error.value = '';
   draft.value = '';
 
-  try {
-    const userMessage = await createChatMessage(currentSession.value.id, 'user', content);
-    messages.value = [...messages.value, userMessage];
-    await loadSessions();
+  const sessionId = currentSession.value.id;
+  messages.value.push({
+    id: `local-user-${Date.now()}`,
+    role: 'user',
+    content,
+    createdAt: new Date().toISOString()
+  });
 
-    const assistantMessage = await createChatMessage(
-      currentSession.value.id,
-      'assistant',
-      '我已记录你的消息。AI 回答将在后续版本接入。'
-    );
-    messages.value = [...messages.value, assistantMessage];
+  const assistant: ChatMessage = {
+    id: `local-assistant-${Date.now()}`,
+    role: 'assistant',
+    content: '',
+    createdAt: new Date().toISOString()
+  };
+  messages.value.push(assistant);
+  await scrollMessagesToBottom();
+
+  try {
+    await askChatStream(sessionId, content, undefined, {
+      onChunk: (chunk) => {
+        assistant.content += chunk;
+        scrollMessagesToBottom();
+      },
+      onDone: (message) => {
+        const index = messages.value.findIndex((item) => item.id === assistant.id);
+        if (index >= 0) {
+          messages.value[index] = message;
+        } else {
+          messages.value.push(message);
+        }
+        scrollMessagesToBottom();
+      },
+      onError: (message) => {
+        error.value = message;
+        if (!assistant.content) {
+          assistant.content = '生成回答失败';
+        }
+        scrollMessagesToBottom();
+      }
+    });
     await loadSessions();
-    await scrollMessagesToBottom();
   } catch (nextError) {
-    error.value = '发送消息失败';
+    error.value = nextError instanceof Error ? nextError.message : '发送问题失败';
+    if (!assistant.content) {
+      assistant.content = '生成回答失败';
+    }
     console.error(nextError);
   } finally {
     busy.value = false;
+    await scrollMessagesToBottom();
   }
 }
 
@@ -208,7 +241,7 @@ async function scrollMessagesToBottom() {
 </script>
 
 <style scoped>
- .chat-page {
+.chat-page {
   max-width: 1180px;
   margin: 0 auto;
   display: grid;
@@ -217,43 +250,43 @@ async function scrollMessagesToBottom() {
   height: calc(100vh - 112px);
 }
 
- .session-sidebar,
- .chat-main {
+.session-sidebar,
+.chat-main {
   display: flex;
   flex-direction: column;
   min-height: 0;
- }
+}
 
- .sidebar-header,
- .chat-header {
+.sidebar-header,
+.chat-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border);
- }
+}
 
- .sidebar-header h2,
- .chat-header h2 {
+.sidebar-header h2,
+.chat-header h2 {
   margin: 0;
   font-size: 18px;
- }
+}
 
- .chat-header p {
+.chat-header p {
   margin: 4px 0 0;
   font-size: 12px;
   text-align: right;
- }
+}
 
- .session-list,
- .messages {
+.session-list,
+.messages {
   flex: 1;
   overflow-y: auto;
   padding-top: 14px;
- }
+}
 
- .session-item {
+.session-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -262,20 +295,20 @@ async function scrollMessagesToBottom() {
   margin-bottom: 8px;
   text-align: left;
   background: #f8fafc;
- }
+}
 
- .session-item.active {
+.session-item.active {
   background: #dbeafe;
   border-color: #93c5fd;
- }
+}
 
- .session-title {
+.session-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
- }
+}
 
- .session-delete {
+.session-delete {
   flex: none;
   padding: 2px 6px;
   border: none;
@@ -283,76 +316,76 @@ async function scrollMessagesToBottom() {
   color: var(--danger);
   background: transparent;
   font-size: 12px;
- }
+}
 
- .messages {
+.messages {
   display: flex;
   flex-direction: column;
   gap: 12px;
- }
+}
 
- .message {
+.message {
   max-width: 76%;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
- }
+}
 
- .message.user {
+.message.user {
   align-self: flex-end;
   background: #eff6ff;
   border-color: #bfdbfe;
- }
+}
 
- .message .role {
+.message .role {
   display: block;
   margin-bottom: 4px;
   color: var(--muted);
   font-size: 12px;
- }
+}
 
- .message p {
+.message p {
   margin: 0;
   white-space: pre-wrap;
- }
+}
 
- .composer {
+.composer {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 10px;
   padding-top: 14px;
   border-top: 1px solid var(--border);
   margin-top: 12px;
- }
+}
 
- textarea {
+textarea {
   resize: vertical;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px;
- }
+}
 
- .error {
+.error {
   color: var(--danger);
   font-size: 13px;
   margin: 12px 0 0;
- }
+}
 
- .empty {
+.empty {
   color: var(--muted);
   padding: 18px 0;
   line-height: 1.6;
- }
+}
 
- .empty.centered {
+.empty.centered {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
- }
+}
 
- @media (max-width: 860px) {
+@media (max-width: 860px) {
   .chat-page {
     grid-template-columns: 1fr;
     height: auto;
@@ -366,5 +399,5 @@ async function scrollMessagesToBottom() {
   .composer {
     grid-template-columns: 1fr;
   }
- }
+}
 </style>

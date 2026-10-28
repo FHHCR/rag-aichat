@@ -4,26 +4,16 @@
       <h1>{{ title }}</h1>
       <p class="muted">{{ hint }}</p>
 
-      <div class="segmented" role="tablist" aria-label="登录模式">
+      <div class="segmented" role="tablist" aria-label="登录方式">
         <button
           type="button"
           role="tab"
-          :aria-selected="mode === 'admin-login'"
-          :class="{ active: mode === 'admin-login' }"
+          :aria-selected="mode === 'login'"
+          :class="{ active: mode === 'login' }"
           :disabled="loading"
-          @click="selectMode('admin-login')"
+          @click="selectMode('login')"
         >
-          管理员登录
-        </button>
-        <button
-          type="button"
-          role="tab"
-          :aria-selected="mode === 'user-login'"
-          :class="{ active: mode === 'user-login' }"
-          :disabled="loading"
-          @click="selectMode('user-login')"
-        >
-          普通用户登录
+          登录
         </button>
         <button
           type="button"
@@ -33,7 +23,7 @@
           :disabled="loading"
           @click="selectMode('register')"
         >
-          注册普通用户
+          注册
         </button>
       </div>
 
@@ -73,21 +63,21 @@ import { login, register } from '../../api/auth';
 import { useAuthStore } from '../../stores/auth';
 import axios from 'axios';
 
-type LoginMode = 'admin-login' | 'user-login' | 'register';
+type LoginMode = 'login' | 'register';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-const username = ref('admin');
-const password = ref('admin123');
+const username = ref('');
+const password = ref('');
 const displayName = ref('');
 const confirmPassword = ref('');
-const mode = ref<LoginMode>('admin-login');
+const mode = ref<LoginMode>('login');
 const loading = ref(false);
 const errorMessage = ref('');
 const title = ref('登录 Rag-AiChat');
-const hint = ref('管理员维护知识库，普通用户使用聊天页面。');
+const hint = ref('登录成功后自动进入对应页面。');
 const submitLabel = ref('登录');
 const loadingText = ref('登录中...');
 
@@ -99,29 +89,20 @@ function selectMode(nextMode: LoginMode) {
   mode.value = nextMode;
   errorMessage.value = '';
 
-  if (mode.value === 'user-login') {
-    username.value = '';
-    password.value = '';
-    title.value = '普通用户登录';
-    hint.value = '登录后进入聊天页面。';
-    submitLabel.value = '登录';
-    loadingText.value = '登录中...';
-  } else if (mode.value === 'admin-login') {
-    username.value = 'admin';
-    password.value = 'admin123';
-    title.value = '登录 Rag-AiChat';
-    hint.value = '管理员维护知识库，普通用户使用聊天页面。';
-    submitLabel.value = '登录';
-    loadingText.value = '登录中...';
-  } else {
+  if (mode.value === 'register') {
     username.value = '';
     password.value = '';
     displayName.value = '';
     confirmPassword.value = '';
-    title.value = '注册普通用户';
-    hint.value = '仅可注册普通用户账号。';
+    title.value = '注册账号';
+    hint.value = '注册账号只能登录聊天页面。';
     submitLabel.value = '注册';
     loadingText.value = '注册中...';
+  } else {
+    title.value = '登录 Rag-AiChat';
+    hint.value = '登录成功后自动进入对应页面。';
+    submitLabel.value = '登录';
+    loadingText.value = '登录中...';
   }
 }
 
@@ -182,7 +163,7 @@ async function submit() {
 
 .segmented {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-top: 18px;
   padding: 4px;

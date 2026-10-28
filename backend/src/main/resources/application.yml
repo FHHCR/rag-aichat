@@ -4,21 +4,33 @@ server:
 spring:
   application:
     name: rag-ai-chat
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/rag_aichat}
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:123456}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    open-in-view: false
-  flyway:
-    enabled: ${FLYWAY_ENABLED:true}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      continue-on-error: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  mapper-locations: classpath*:/mapper/**/*.xml
 
 app:
   jwt:
@@ -26,7 +38,24 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   upload:
     dir: ${UPLOAD_DIR:./uploads}
+  embedding:
+    base-url: ${APP_EMBEDDING_BASE_URL:}
+    api-key: ${APP_EMBEDDING_API_KEY:}
+    model: ${APP_EMBEDDING_MODEL:}
+  llm:
+    base-url: ${APP_LLM_BASE_URL:}
+    api-key: ${APP_LLM_API_KEY:}
+    model: ${APP_LLM_MODEL:}
+  rag:
+    chunk-size: ${APP_RAG_CHUNK_SIZE:1200}
+    chunk-overlap: ${APP_RAG_CHUNK_OVERLAP:150}
+    top-k: ${APP_RAG_TOP_K:5}
+    timeout-seconds: ${APP_RAG_TIMEOUT_SECONDS:40}
 
 logging:
   level:
     org.springframework.security: INFO
+    com.rag.aichat.mapper: DEBUG
+    org.apache.ibatis: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+    
