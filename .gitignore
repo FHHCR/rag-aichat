@@ -4,6 +4,7 @@ target/
 .npm-cache/
 .m2/
 *.log
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
 
@@ -11,6 +12,8 @@ Thumbs.db
 *.iml
 .vscode/
 
+uploads/
+application-test.yml
 env.local
 .env
 .env.*

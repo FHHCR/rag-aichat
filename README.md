@@ -1,43 +1,36 @@
 # Rag-AiChat
 
-更新时间：2026-10-26
+更新时间：2026-10-28
 
-Rag-AiChat 是一个基于 RAG 的 AI 问答系统，使用 SpringBoot 后端和 Vue 前端实现。项目分为用户聊天页面和管理后台两部分：普通用户只使用聊天页面，管理员负责上传文件、维护知识库和管理账号。
+Rag-AiChat 是一个基于 RAG（检索增强生成）的 AI 问答系统。后端使用 Spring Boot，前端使用 Vue 3，包含用户聊天页面和管理后台。
 
-## 几天计划
+## 主要功能
 
-- Day 1：`v0.1-v0.4`，已完成后端脚手架、前端脚手架、数据库基础设施和登录 JWT。
-- Day 2：`v0.5-v0.6`，完成角色鉴权和管理员知识库管理。
-- Day 3：`v0.7-v0.9`，完成聊天会话持久化、聊天 API 和聊天 UI。
-- Day 4：`v1.0`，计划完成文件上传、Apache Tika 解析和解析状态管理。
+### 用户端
 
-## 版本记录
+- 登录、注册。
+- 会话管理：新建、查看、删除（软删除）会话。
+- 消息：查看历史消息，发送问题。
+- 流式问答：提问时自动使用全部已启用的知识库，检索相关片段生成回答，并以流式方式返回。
 
-- [x] v0.1：初始化 SpringBoot 后端项目、基础配置和统一响应结构。
-- [x] v0.2：初始化 Vue 前端项目、路由、布局、Axios 封装和基础页面骨架。
-- [x] v0.3：接入 PostgreSQL、Redis 和 pgvector，完成基础表结构。
-- [x] v0.4：完成用户实体、登录接口、JWT 签发和登录页面。
-- [x] v0.5：完成 USER、ADMIN 角色鉴权和管理后台访问控制。
-- [x] v0.6：完成知识库实体、管理员知识库 CRUD 和前端知识库页面。
-- [x] v0.7：完成 USER/ADMIN 聊天访问控制，保留 `/api/admin/**` 管理员限制，修正无 token 访问受保护聊天接口为 401，并补充普通用户注册接口与登录页注册入口。
-- [x] v0.8：完成聊天会话和聊天消息 API，支持当前用户会话创建、查询、删除，以及会话消息查询和创建。
-- [x] v0.9：完成 Vue 聊天页面，支持会话列表、新建、删除、消息历史、发送消息和占位 assistant 回复。
-- [ ] v1.0：完成文件上传、Apache Tika 解析、文本切分、embedding、pgvector 入库、AgentScope Java 2.0 RAG 回答、引用来源保存、重新索引、用户管理、管理员管理、系统状态、测试和启动说明。
+### 管理后台
 
-## 开发环境要求
+- 知识库：创建、编辑、删除、查看知识库。
+- 文件：上传文件，使用 Apache Tika 解析，查看解析状态，删除文件，重新索引。
+- 用户：查看用户列表，修改用户信息。
+- 系统状态：查看数据库、pgvector、Redis、上传目录、Embedding、LLM、Tika 的运行状态。
 
-当前设计需要：
+## 技术栈
 
-- JDK 17+
-- Maven 3.8+
-- Node.js 18+
-- PostgreSQL 14+
-- pgvector 扩展
-- Redis 6+
+- 后端：Spring Boot、Spring Security、JWT
+- 数据访问：MyBatis + MyBatis-Plus
+- 文件解析：Apache Tika
+- 数据库：PostgreSQL + pgvector
+- 缓存：Redis
+- 大模型：OpenAI 兼容接口（配置在 `application.yml`）
+- 前端：Vue 3 + Vite + TypeScript
 
 ## 启动方式
-
-启动方式如下：
 
 ```bash
 # 后端
@@ -52,76 +45,15 @@ npm install
 npm run dev
 ```
 
-实际端口、数据库连接、Redis 地址、大模型 API 和 embedding API 配置以后端 `application.yml` 为准。默认开发管理员账号为 `admin` / `admin123`。
+- 后端默认端口：`8080`。
+- 数据库、Redis、大模型、Embedding 等配置在 `backend/src/main/resources/application.yml`，均可用环境变量覆盖。
+- 默认开发管理员账号：`admin` / `admin123`。
 
-## 技术栈
+## 数据库
 
-- 后端：SpringBoot
-- 前端：Vue 3 + Vite + TypeScript
-- 认证：Spring Security + JWT
-- 文件解析：Apache Tika
-- 业务数据库：PostgreSQL
-- 向量数据库：PostgreSQL + pgvector
-- Java RAG 框架：AgentScope Java 2.0
-- 缓存：Redis
-
-## 当前功能设计
-
-### 用户端
-
-- 登录
-- 新建聊天会话
-- 查看历史会话
-- 基于知识库提问
-- 查看模型回答
-- 查看引用来源
-- 删除自己的历史会话
-- 选择知识库范围
-
-普通用户不能上传文件、管理知识库、管理用户或进入管理后台。
-
-### 管理后台
-
-- 管理知识库
-- 上传文件
-- 查看文件解析状态
-- 删除文件
-- 重新索引文件
-- 管理用户
-- 管理管理员
-- 查看基础系统状态
-
-## RAG 流程
-
-### 文件入库
-
-1. 管理员上传文件。
-2. 后端保存原始文件。
-3. 写入文件元数据。
-4. 使用 Apache Tika 提取文本。
-5. 将文本切分为片段。
-6. 为片段生成 embedding。
-7. 将片段、来源信息和向量写入 PostgreSQL + pgvector。
-8. 更新文件状态为可检索。
-
-### 用户提问
-
-1. 用户发送问题。
-2. 后端保存用户消息。
-3. 将问题生成 embedding。
-4. 使用 pgvector 检索相关片段。
-5. 将问题和片段交给大模型。
-6. 生成回答。
-7. 保存回答和引用来源。
-8. 返回给前端展示。
+启动时自动执行 `backend/src/main/resources/db/schema.sql`，可重复运行，并保留默认管理员账号。聊天会话使用 `is_deleted` 字段做软删除。
 
 ## 关键文档
 
 - 总体方案：`docs/rag-ai-chat-plan.md`
-- 多天计划：`docs/plans/2026-10-24-rag-ai-chat-days-plan.md`
-- Day 1 规格说明：`docs/specs/2026-10-24-rag-ai-chat-spec.md`
-- Day 1 实现计划：`docs/plans/2026-10-24-rag-ai-chat-implementation-plan.md`
-- Day 2 规格说明：`docs/specs/2026-10-25-rag-ai-chat-v0.5-v0.6-spec.md`
-- Day 2 实现计划：`docs/plans/2026-10-25-today-plan.md`
-- Day 3 规格说明：`docs/specs/2026-10-26-rag-ai-chat-v0.7-v0.9-spec.md`
-- Day 3 实现计划：`docs/plans/2026-10-26-today-plan.md`
+- v1.0 规格：`docs/specs/2026-10-26-rag-ai-chat-v1.0-spec.md`

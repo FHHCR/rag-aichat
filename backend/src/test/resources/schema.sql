@@ -1,4 +1,7 @@
-CREATE EXTENSION IF NOT EXISTS vector;
+-- H2-compatible test schema (PostgreSQL mode).
+-- Matches the production schema.sql. The pgvector `embedding` column is
+-- represented as a plain text column because H2 has no vector type; vector
+-- search is exercised against real PostgreSQL, not in these controller tests.
 
 CREATE TABLE users (
     id varchar(36) PRIMARY KEY,
@@ -45,7 +48,7 @@ CREATE TABLE document_chunks (
     content text NOT NULL,
     embedding_provider varchar(80) NOT NULL,
     embedding_model varchar(120) NOT NULL,
-    embedding vector(1536),
+    embedding varchar(20000),
     created_at timestamp NOT NULL
 );
 
@@ -54,6 +57,8 @@ CREATE TABLE chat_sessions (
     user_id varchar(36) NOT NULL REFERENCES users(id),
     title varchar(200) NOT NULL,
     knowledge_base_scope jsonb,
+    is_deleted boolean NOT NULL DEFAULT false,
+    deleted_at timestamp,
     created_at timestamp NOT NULL,
     updated_at timestamp NOT NULL
 );
@@ -65,16 +70,6 @@ CREATE TABLE chat_messages (
     role varchar(20) NOT NULL,
     content text NOT NULL,
     source_json jsonb,
-    created_at timestamp NOT NULL
-);
-
-CREATE TABLE audit_logs (
-    id varchar(36) PRIMARY KEY,
-    actor_id varchar(36),
-    action varchar(100) NOT NULL,
-    target_type varchar(80) NOT NULL,
-    target_id varchar(100) NOT NULL,
-    summary varchar(1000) NOT NULL,
     created_at timestamp NOT NULL
 );
 

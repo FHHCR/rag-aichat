@@ -8,6 +8,7 @@ public class ChatSessionResponse {
 
     private String id;
     private String title;
+    private String knowledgeBaseScope;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
@@ -29,6 +30,14 @@ public class ChatSessionResponse {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getKnowledgeBaseScope() {
+        return knowledgeBaseScope;
+    }
+
+    public void setKnowledgeBaseScope(String knowledgeBaseScope) {
+        this.knowledgeBaseScope = knowledgeBaseScope;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -13,6 +13,8 @@ public class ChatMessageResponse {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
+    private String sourceJson;
+
     public String getId() {
         return id;
     }
@@ -43,5 +45,13 @@ public class ChatMessageResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getSourceJson() {
+        return sourceJson;
+    }
+
+    public void setSourceJson(String sourceJson) {
+        this.sourceJson = sourceJson;
     }
 }
